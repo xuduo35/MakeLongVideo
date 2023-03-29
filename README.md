@@ -23,6 +23,11 @@ accelerate launch --config_file ./configs/multigpu.yaml train.py --config config
 
 ## Inference
 ```shell
+# unwrap checkpoint first
+TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch train.py --config configs/makelongvideo.yaml --unwrap ./outputs/makelongvideo/checkpoint-3000
+```
+
+```shell
 python3 infer.py  --width 128 --height 128 --prompt "a panda is surfing"
 ```
 
