@@ -9,7 +9,7 @@ python3 -m pip install -r requirements.txt
 ```
 
 ## Training
-### Prepare Stable Diffusion Pretrained Weights
+### Prepare Stable Diffusion pretrained weights
 download from huggingface and put it in directory 'checkpoints' which is configured in configs/makelongvideo.yaml 
 
 ### Download webvid dataset
