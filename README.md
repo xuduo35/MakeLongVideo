@@ -27,7 +27,7 @@ python3 infer.py  --width 128 --height 128 --prompt "a panda is surfing"
 ```
 
 ## Todo
-- [ ] generate 24 frames video of 128x128
+- [x] generate 24 frames video of 128x128
 - [ ] add fps control
 - [ ] release pretrained checkpoint
 - [ ] improve resolution to 256x256, 512x512
