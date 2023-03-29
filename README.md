@@ -1,7 +1,30 @@
 ## MakeLongVideo - Pytorch
 Implementation of long video generation based on diffusion model.
 
-## Usage
+## Setup
+### Requirements
+
+```shell
+python3 -m pip install -r requirements.txt
+```
+
+## Training
+### Prepare Stable Diffusion Pretrained Weights
+download from huggingface and put it in directory 'checkpoints' which is configured in configs/makelongvideo.yaml 
+
+### Download webvid dataset
+download webvid dataset into directory 'data/webvid' using https://github.com/m-bain/webvid repo. Then prepare dataset using command
+```shell
+python3 genvideocap.py
+```
+
+### Begin training
+accelerate launch --config_file ./configs/multigpu.yaml train.py --config configs/makelongvideo.yaml
+
+## Inference
+```shell
+python3 infer.py  --width 128 --height 128 --prompt "a panda is surfing"
+```
 
 ## Todo
 - [ ] generate 24 frames video of 128x128
