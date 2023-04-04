@@ -17,7 +17,7 @@ playlists_to_dl = np.sort(df['page_dir'].unique())
 
 print("Generate train.txt...")
 
-f = open("./data/webvid/train1.txt", "w")
+f = open("./data/webvid/train.txt", "w")
 
 for page_dir in playlists_to_dl:
     vid_dir_t = os.path.join(video_dir, page_dir)
