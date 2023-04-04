@@ -21,7 +21,7 @@ python3 genvideocap.py
 ### Download LAION400M dataset
 download laion400m into directory 'data/laion400m'
 
-### Training
+### Train
 first train using resolution 128x128
 ```shell
 accelerate launch --config_file ./configs/multigpu.yaml train.py --config configs/makelongvideo.yaml
