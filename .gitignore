@@ -130,5 +130,6 @@ dmypy.json
 
 command.txt
 data/webvid
+data/laion400m
 checkpoints
 outputs

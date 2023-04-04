@@ -37,11 +37,55 @@ from accelerate import DistributedDataParallelKwargs
 
 import torch.nn.functional as F
 
+import webdataset as wds
+from functools import partial
+
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.
 check_min_version("0.10.0.dev0")
 
 #logger = get_logger(__name__, log_level="INFO")
 logger = get_logger(__name__)
+
+def identity(x):
+    return x
+
+def dotokenize(prompt, tokenizer):
+    return tokenizer(
+                    prompt,
+                    max_length=tokenizer.model_max_length,
+                    padding="max_length",
+                    truncation=True,
+                    return_tensors="pt"
+                    ).input_ids[0]
+
+class Laion400MImageLoader:
+    def __init__(self, dataset, width=256, height=256, num_workers=8, batch_size=96):
+        self.loader = torch.utils.data.DataLoader(dataset, num_workers=8, batch_size=batch_size)
+        self.iter = iter(self.loader)
+        self.width = width
+        self.height = height
+
+    def getnext(self):
+        try:
+            sample = next(self.iter)
+        except:
+            self.iter = iter(self.loader)
+            sample = next(self.iter)
+
+        images = sample[0]*2.-1.
+        prompt_ids = sample[1]
+
+        images = rearrange(images, "(b f) h w c -> b (f c) h w", f=1)
+        images = F.interpolate(images, size=(self.height,self.width))
+        images = rearrange(images, "b (f c) h w -> b f c h w", f=1)
+        #images = rearrange(images, "(b f) h w c -> b f c h w", f=1)
+
+        example = {
+            "pixel_values": images,
+            "prompt_ids": prompt_ids
+        }
+
+        return example
 
 def main(
     pretrained_model_path: str,
@@ -75,6 +119,7 @@ def main(
     use_8bit_adam: bool = False,
     enable_xformers_memory_efficient_attention: bool = True,
     seed: Optional[int] = None,
+    train_image: Optional[Dict] = None,
 ):
     *_, config = inspect.getargvalues(inspect.currentframe())
 
@@ -199,6 +244,23 @@ def main(
         train_dataset, batch_size=train_batch_size, num_workers=8
     )
 
+    train_list = ["video"]
+
+    if train_image is not None:
+        train_list.append("image")
+
+        tokenizeit = partial(dotokenize, tokenizer=tokenizer)
+
+        image_dataset = wds.WebDataset(
+                train_image['image_files'], nodesplitter=wds.split_by_node
+                ).shuffle(1000).decode("rgb").to_tuple("jpg", "txt").map_tuple(identity, tokenizeit)
+        image_loader = Laion400MImageLoader(
+                image_dataset,
+                width=train_image['width'],
+                height=train_image['height'],
+                batch_size=train_image['train_batch_size']
+                )
+
     # Get the validation pipeline
     validation_pipeline = MakeLongVideoPipeline(
         vae=vae, text_encoder=text_encoder, tokenizer=tokenizer, unet=unet,
@@ -217,9 +279,14 @@ def main(
     )
 
     # Prepare everything with our `accelerator`.
-    unet, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        unet, optimizer, train_dataloader, lr_scheduler
-    )
+    if train_image is None:
+        unet, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+            unet, optimizer, train_dataloader, lr_scheduler
+        )
+    else:
+        unet, optimizer, train_dataloader, image_loader, lr_scheduler = accelerator.prepare(
+            unet, optimizer, train_dataloader, image_loader, lr_scheduler
+        )
 
     # For mixed precision training we cast the text_encoder and vae weights to half-precision
     # as these models are only used for inference, keeping weights in full precision is not required.
@@ -288,6 +355,8 @@ def main(
 
             sys.exit(0)
 
+    train_image_interval = 3
+
     # Only show the progress bar once on each machine.
     progress_bar = tqdm(range(global_step, max_train_steps), disable=not accelerator.is_local_main_process)
     progress_bar.set_description("Steps")
@@ -296,6 +365,7 @@ def main(
     for epoch in range(first_epoch, num_train_epochs):
         unet.train()
         train_loss = 0.0
+        train_loss_img = 0.0
         for step, batch in enumerate(train_dataloader):
             # Skip steps until we reach the resumed step
             if resume_from_checkpoint and epoch == first_epoch and step < resume_step:
@@ -304,6 +374,15 @@ def main(
                 continue
 
             with accelerator.accumulate(unet):
+              for loop in train_list:
+                if loop == "image":
+                    if step % train_image_interval != 0:
+                        break
+
+                    batch = image_loader.getnext()
+                    batch["pixel_values"] = batch["pixel_values"].to(accelerator.device, dtype=weight_dtype)
+                    batch["prompt_ids"] = batch["prompt_ids"].to(accelerator.device)
+
                 # Convert videos to latent space
                 pixel_values = batch["pixel_values"].to(weight_dtype)
                 video_length = pixel_values.shape[1]
@@ -351,7 +430,10 @@ def main(
 
                 # Gather the losses across all processes for logging (if we use distributed training).
                 avg_loss = accelerator.gather(loss.repeat(train_batch_size)).mean()
-                train_loss += avg_loss.item() / gradient_accumulation_steps
+                if loop == "video":
+                    train_loss += avg_loss.item() / gradient_accumulation_steps
+                else:
+                    train_loss_img += avg_loss.item() / gradient_accumulation_steps
 
                 # Backpropagate
                 #with torch.autograd.detect_anomaly():
@@ -375,8 +457,11 @@ def main(
                 #print("\n", unet.state_dict()['conv_in.spatial_conv.weight'], "\n")
                 progress_bar.update(1)
                 global_step += 1
-                accelerator.log({"train_loss": train_loss}, step=global_step)
+                accelerator.log({"train_loss": train_loss, "train_loss_img": train_loss_img}, step=global_step)
                 train_loss = 0.0
+
+                if step % train_image_interval == train_image_interval-1:
+                    train_loss_img = 0.0
 
                 if global_step % checkpointing_steps == 0:
                     if accelerator.is_main_process:
