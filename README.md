@@ -50,7 +50,7 @@ python3 infer.py  --width 256 --height 256 --prompt "a panda is surfing" --sampl
 
 inference by sample frame rate 6 (actual frame rate is 24/6==4)
 ```shell
-python3 infer.py  --width 256 --height 256 --prompt "SSFFRR_6 a panda is surfing"
+python3 infer.py  --width 256 --height 256 --prompt "a panda is surfing" --speed 6
 ```
 
 ## Todo

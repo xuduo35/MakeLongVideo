@@ -131,5 +131,7 @@ dmypy.json
 command.txt
 data/webvid
 data/laion400m
+data/hdvila100m
 checkpoints
 outputs
+test.sh

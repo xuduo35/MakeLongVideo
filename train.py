@@ -3,6 +3,7 @@ import datetime
 import logging
 import inspect
 import math
+import random
 import os
 import sys
 from pathlib import Path
@@ -50,6 +51,9 @@ def identity(x):
     return x
 
 def dotokenize(prompt, tokenizer):
+    if random.random() < 0.5:
+        prompt = "{} ...{}x".format(prompt, random.randint(2,12))
+
     return tokenizer(
                     prompt,
                     max_length=tokenizer.model_max_length,
@@ -355,8 +359,6 @@ def main(
 
             sys.exit(0)
 
-    train_image_interval = 3
-
     # Only show the progress bar once on each machine.
     progress_bar = tqdm(range(global_step, max_train_steps), disable=not accelerator.is_local_main_process)
     progress_bar.set_description("Steps")
@@ -376,9 +378,6 @@ def main(
             with accelerator.accumulate(unet):
               for loop in train_list:
                 if loop == "image":
-                    if step % train_image_interval != 0:
-                        break
-
                     batch = image_loader.getnext()
                     batch["pixel_values"] = batch["pixel_values"].to(accelerator.device, dtype=weight_dtype)
                     batch["prompt_ids"] = batch["prompt_ids"].to(accelerator.device)
@@ -430,6 +429,7 @@ def main(
 
                 # Gather the losses across all processes for logging (if we use distributed training).
                 avg_loss = accelerator.gather(loss.repeat(train_batch_size)).mean()
+
                 if loop == "video":
                     train_loss += avg_loss.item() / gradient_accumulation_steps
                 else:
@@ -459,9 +459,7 @@ def main(
                 global_step += 1
                 accelerator.log({"train_loss": train_loss, "train_loss_img": train_loss_img}, step=global_step)
                 train_loss = 0.0
-
-                if step % train_image_interval == train_image_interval-1:
-                    train_loss_img = 0.0
+                train_loss_img = 0.0
 
                 if global_step % checkpointing_steps == 0:
                     if accelerator.is_main_process:

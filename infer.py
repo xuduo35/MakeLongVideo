@@ -25,6 +25,7 @@ def randstr(l=16):
 parser = argparse.ArgumentParser(description='Make Long Video')
 parser.add_argument('--prompt', type=str, default=None, required=True, help='prompt')
 parser.add_argument('--negprompt', type=str, default=None, help='negtive prompt')
+parser.add_argument('--speed', type=int, default=None, help='playback speed')
 parser.add_argument('--inv_latent_path', type=str, default=None, help='inversion latent path')
 parser.add_argument('--sample_video_path', type=str, default=None, help='sample video path')
 parser.add_argument('--guidance_scale', type=float, default=12.5, help='guidance scale')
@@ -103,15 +104,20 @@ elif False:
     ddim_inv_latent = torch.randn([1, 4, 24, 64, 64]).to(torch.float16)
     #ddim_inv_latent = torch.randn([1, 4, 1, 64, 64]).repeat_interleave(24,dim=2)
 
-video = pipeline(args.prompt, latents=ddim_inv_latent, video_length=24, height=args.height, width=args.width, num_inference_steps=50, guidance_scale=args.guidance_scale, negative_prompt=args.negprompt).videos
+prompt = "{} ...{}x".format(args.prompt, args.speed) if args.speed is not None else args.prompt
+
+print('prompt:', prompt)
+
+video = pipeline(prompt, latents=ddim_inv_latent, video_length=24, height=args.height, width=args.width, num_inference_steps=50, guidance_scale=args.guidance_scale, negative_prompt=args.negprompt).videos
 
 if not os.path.exists("./outputs/results"):
     os.mkdir("./outputs/results")
 
-fps = 12
-SFR_prefix = "SSFFRR_"
+fps = 24//args.speed if args.speed is not None else 12
 
-if args.prompt.startswith(SFR_prefix):
-    fps = 24//int(args.prompt.split(" ")[0][len(SFR_prefix):])
+if args.speed is not None:
+    resultfile = f"./outputs/results/{args.prompt[:16]}-{randstr(6)}-{args.speed}x.gif"
+else:
+    resultfile = f"./outputs/results/{args.prompt[:16]}-{randstr(6)}.gif"
 
-save_videos_grid(video, f"./outputs/results/{args.prompt[:10]}-{randstr(6)}.gif", fps=fps)
+save_videos_grid(video, resultfile, fps=fps)

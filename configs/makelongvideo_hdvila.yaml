@@ -2,10 +2,10 @@ pretrained_model_path: "./checkpoints/stable-diffusion-v1-4"
 output_dir: "./outputs/makelongvideo"
 
 train_data:
-  video_dir: "./data/webvid"
+  video_dir: "./data/hdvila100m"
   n_sample_frames: 24
-  width: 256 
-  height: 256
+  width: 320
+  height: 192
   sample_start_idx: 0
   sample_frame_rates: "2,3,4,6,8"
 
@@ -25,8 +25,8 @@ validation_data:
     - "a panda is surfing ...4x"
     - "a panda is surfing ...8x"
   video_length: 24
-  width: 256
-  height: 256
+  width: 320
+  height: 192
   num_inference_steps: 50
   guidance_scale: 12.5
   use_inv_latent: False

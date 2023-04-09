@@ -65,7 +65,7 @@ class MakeLongVideoDataset(Dataset):
         if sample_frame_rate == self.sample_frame_rates[0] and random.random() < 0.5:
             return vr, prompt
 
-        return vr, "SSFFRR_{} {}".format(sample_frame_rate, prompt)
+        return vr, "{} ...{}x".format(prompt, sample_frame_rate)
 
     def __getitem__(self, index):
         sample_frame_rate = self.sample_frame_rates[random.randint(0,len(self.sample_frame_rates))-1]
