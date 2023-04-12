@@ -51,4 +51,6 @@ use_8bit_adam: False
 gradient_checkpointing: True
 enable_xformers_memory_efficient_attention: True
 gradient_accumulation_steps: 100
-resume_from_checkpoint: "outputs/man-surfing/checkpoint-3020"
+use_offset_noise: False
+offset_noise_strength: 0.1
+resume_from_checkpoint: "outputs/makelongvideo/checkpoint-3100"

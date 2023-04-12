@@ -91,6 +91,20 @@ class Laion400MImageLoader:
 
         return example
 
+# adapt offset noise from https://github.com/ExponentialML/Text-To-Video-Finetuning
+# theory: https://www.crosslabs.org/blog/diffusion-with-offset-noise
+
+def sample_noise(latents, noise_strength, use_offset_noise):
+    b ,c, f, *_ = latents.shape
+    noise_latents = torch.randn_like(latents, device=latents.device)
+    offset_noise = None
+
+    if use_offset_noise:
+        offset_noise = torch.randn(b, c, f, 1, 1, device=latents.device)
+        noise_latents = noise_latents + noise_strength * offset_noise
+
+    return noise_latents
+
 def main(
     pretrained_model_path: str,
     output_dir: str,
@@ -124,6 +138,8 @@ def main(
     enable_xformers_memory_efficient_attention: bool = True,
     seed: Optional[int] = None,
     train_image: Optional[Dict] = None,
+    use_offset_noise: bool = False,
+    offset_noise_strength: float = 0.1,
 ):
     *_, config = inspect.getargvalues(inspect.currentframe())
 
@@ -398,7 +414,10 @@ def main(
                 #blurred_latents = blurred_latents * 0.18215
 
                 # Sample noise that we'll add to the latents
-                noise = torch.randn_like(latents)
+                if video_length != 1:
+                    noise = torch.randn_like(latents)
+                else:
+                    noise = sample_noise(latents, offset_noise_strength, use_offset_noise)
                 bsz = latents.shape[0]
                 # Sample a random timestep for each video
                 timesteps = torch.randint(0, noise_scheduler.num_train_timesteps, (bsz,), device=latents.device)
