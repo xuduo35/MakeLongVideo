@@ -75,7 +75,8 @@ class MakeLongVideoDataset(Dataset):
         while True:
             vr, prompt = self.getvr(idx, sample_frame_rate)
 
-            if vr is None or (len(vr)//sample_frame_rate) < self.n_sample_frames+3:
+            if vr is None or len(vr) < self.sample_start_idx+1 \
+                    or ((len(vr)-self.sample_start_idx)//sample_frame_rate) < self.n_sample_frames+3:
                 idx = random.randint(0, len(self.videolist)-1)
                 continue
 

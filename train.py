@@ -52,7 +52,7 @@ def identity(x):
 
 def dotokenize(prompt, tokenizer):
     if random.random() < 0.5:
-        prompt = "{} ...{}x".format(prompt, random.randint(2,12))
+        prompt = "{} ...0x".format(prompt)
 
     return tokenizer(
                     prompt,
@@ -414,10 +414,8 @@ def main(
                 #blurred_latents = blurred_latents * 0.18215
 
                 # Sample noise that we'll add to the latents
-                if video_length != 1:
-                    noise = torch.randn_like(latents)
-                else:
-                    noise = sample_noise(latents, offset_noise_strength, use_offset_noise)
+                #noise = torch.randn_like(latents)
+                noise = sample_noise(latents, offset_noise_strength, use_offset_noise)
                 bsz = latents.shape[0]
                 # Sample a random timestep for each video
                 timesteps = torch.randint(0, noise_scheduler.num_train_timesteps, (bsz,), device=latents.device)

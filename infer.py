@@ -30,8 +30,8 @@ parser.add_argument('--inv_latent_path', type=str, default=None, help='inversion
 parser.add_argument('--sample_video_path', type=str, default=None, help='sample video path')
 parser.add_argument('--guidance_scale', type=float, default=12.5, help='guidance scale')
 parser.add_argument('--save', action='store_true', default=False, help='save parameters')
-parser.add_argument('--width', type=int, default=512, help='width')
-parser.add_argument('--height', type=int, default=512, help='height')
+parser.add_argument('--width', type=int, default=256, help='width')
+parser.add_argument('--height', type=int, default=256, help='height')
 
 args = parser.parse_args()
 
