@@ -1,6 +1,32 @@
 ## MakeLongVideo - Pytorch
 Implementation of long video generation based on diffusion model.
 
+<table class="center">
+  <tr>
+  <td style="text-align:center;" width="170">"Ironman is surfing"</td>
+  <td style="text-align:center;" width="170">"a car is racing"</td>
+  <td style="text-align:center;" width="170">"a cat eating food of a bowl, in von Gogh style"</td>
+  <td style="text-align:center;" width="170">"a giraffe underneath the microwave"</td>
+  </tr><tr>
+  <td><img src="samples/Ironman is surfi-7P269S.gif" width="170"></td>
+  <td><img src="samples/a car is racing-tm9rwR-4x.gif" width="170"></td>
+  <td><img src="samples/a cat eating foo-IR47a4.gif" width="170"></td>
+  <td><img src="samples/a giraffe undern-cAmGAc.gif" width="170"></td>
+  </tr><tr>
+  <td style="text-align:center;" width="170">"a glass bead falling into water with huge splash"</td>
+  <td style="text-align:center;" width="170">"a video of Earth rotating in space"</td>
+  <td style="text-align:center;" width="170">"A teddy bear running in New York City"</td>
+  <td style="text-align:center;" width="170">"A stunning aerial drone footage time lapse of El Capitan in Yosemite National Park at sunset"</td>
+  </tr><tr>
+  <td><img src="samples/a glass bead fal-Uxxg0y.gif" width="170"></td>
+  <td><img src="samples/a video of Earth-DzP1ma.gif" width="170"></td>
+  <td><img src="samples/A teddy bear run-A17vOA.gif" width="170"></td>
+  <td><img src="samples/A stunning aeria-WdIUoM.gif" width="170"></td>
+  </tr>
+</table >
+
+<!-- <br>   -->
+
 ## Setup
 ### Requirements
 
