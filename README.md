@@ -59,9 +59,12 @@ accelerate launch --config_file ./configs/multigpu.yaml train.py --config config
 ```
 
 ## Inference
+
+Pretrained weights: https://huggingface.co/xiexiecn/MakeLongVideo
+
 ```shell
 # unwrap checkpoint first
-TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch train.py --config configs/makelongvideo.yaml --unwrap ./outputs/makelongvideo/checkpoint-3000
+TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch train.py --config configs/makelongvideo.yaml --unwrap ./outputs/makelongvideo/checkpoint-5200
 ```
 
 inference directly
@@ -82,7 +85,8 @@ python3 infer.py  --width 256 --height 256 --prompt "a panda is surfing" --speed
 ## Todo
 - [x] generate 24 frames video of 256x256
 - [x] add fps control
-- [ ] release pretrained checkpoint
+- [x] release pretrained checkpoint
+- [ ] remove watermark
 - [ ] improve resolution to 512x512
 - [ ] 1~2minutes video generation
 - [ ] make story video
