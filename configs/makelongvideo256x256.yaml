@@ -3,17 +3,19 @@ output_dir: "./outputs/makelongvideo"
 
 train_data:
   video_dir: "./data"
+  train_list: "train_clean.txt"
   n_sample_frames: 24
   width: 256
   height: 256
   sample_start_idx: 0
-  sample_frame_rates: "2,3,4,6,8"
+  #sample_frame_rates: "2,3,4,6,8"
+  sample_frame_rates: "1,2,3,4,5,6"
 
-train_image:
-  image_files: "./data/laion400m/{00000..02587}.tar"
-  train_batch_size: 96
-  width: 256
-  height: 256
+#train_image:
+#  image_files: "./data/laion400m/{00000..02587}.tar"
+#  train_batch_size: 96
+#  width: 256
+#  height: 256
 
 validation_data:
   prompts:
@@ -23,7 +25,7 @@ validation_data:
     - "Iron Man is surfing in the desert"
     - "a panda is surfing ...2x"
     - "a panda is surfing ...4x"
-    - "a panda is surfing ...8x"
+    - "a panda is surfing ...6x"
   video_length: 24
   width: 256
   height: 256
@@ -32,8 +34,10 @@ validation_data:
   use_inv_latent: False
   num_inv_steps: 50
 
-learning_rate: 3e-5
-#learning_rate: 1e-4
+#learning_rate: 3e-5
+learning_rate: 1e-5
+#learning_rate: 3e-6
+#learning_rate: 1e-6
 train_batch_size: 4
 max_train_steps: 20000
 checkpointing_steps: 10
@@ -51,6 +55,11 @@ use_8bit_adam: False
 gradient_checkpointing: True
 enable_xformers_memory_efficient_attention: True
 gradient_accumulation_steps: 100
-use_offset_noise: False
-offset_noise_strength: 0.1
-resume_from_checkpoint: "outputs/makelongvideo/checkpoint-5150"
+#use_offset_noise: False
+#offset_noise_strength: 0.1
+use_offset_noise: True
+#offset_noise_strength: 0.07
+#offset_noise_strength: 0.13
+#offset_noise_strength: 0.17
+offset_noise_strength: 0.23
+resume_from_checkpoint: "outputs/makelongvideo/checkpoint-16480"

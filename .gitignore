@@ -129,10 +129,9 @@ dmypy.json
 .pyre/
 
 command.txt
-data/webvid*
-data/laion400m
-data/hdvila100m
-data/*.txt
+data/*
 checkpoints
 outputs
 test.sh
+
+clearresult.sh

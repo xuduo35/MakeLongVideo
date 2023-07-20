@@ -401,9 +401,12 @@ def main(
                 # Convert videos to latent space
                 pixel_values = batch["pixel_values"].to(weight_dtype)
                 video_length = pixel_values.shape[1]
-                b, f, c, h, w = pixel_values.shape
+                #b, f, c, h, w = pixel_values.shape
                 pixel_values = rearrange(pixel_values, "b f c h w -> (b f) c h w")
+                #if pixel_values.shape[-1] > 256 and random.random() < 0.3:
+                #    pixel_values = F.interpolate(pixel_values, (256,256))
                 latents = vae.encode(pixel_values).latent_dist.sample()
+
                 latents = rearrange(latents, "(b f) c h w -> b c f h w", f=video_length)
                 latents = latents * 0.18215
 
@@ -498,7 +501,7 @@ def main(
 
                             validh,validw = (validation_data.height, validation_data.width)
                             latents = vae.encode(
-                                F.interpolate(pixel_values[:f,:,:,:], (validh, validw))
+                                F.interpolate(pixel_values[:video_length,:,:,:], (validh, validw))
                                 ).latent_dist.sample()
                             latents = rearrange(latents, "(b f) c h w -> b c f h w", f=video_length)
                             latents = latents * 0.18215

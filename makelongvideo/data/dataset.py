@@ -1,7 +1,7 @@
 import os
 import decord
 decord.bridge.set_bridge('torch')
-
+import numpy as np
 import torch
 
 from torch.utils.data import Dataset
@@ -9,11 +9,11 @@ from einops import rearrange
 
 import random
 
-
 class MakeLongVideoDataset(Dataset):
     def __init__(
             self,
             video_dir: str,
+            train_list: str,
             width: int = 512,
             height: int = 512,
             n_sample_frames: int = 8,
@@ -23,7 +23,7 @@ class MakeLongVideoDataset(Dataset):
             tokenizer=None
     ):
         self.video_dir = video_dir
-        f = open(os.path.join(self.video_dir, "train.txt"))
+        f = open(os.path.join(self.video_dir, train_list))
         self.videolist = [line.strip() for line in f.readlines()]
         random.shuffle(self.videolist)
         f.close()
@@ -54,26 +54,32 @@ class MakeLongVideoDataset(Dataset):
             video_path = os.path.join(self.video_dir, line)
             prompt = ""
 
+        sample_frame_rates = self.sample_frame_rates
+        sample_frame_rate = sample_frame_rates[random.randint(0,len(sample_frame_rates)-1)]
+
         # load and sample video frames
         try:
             vr = decord.VideoReader(video_path, width=self.width, height=self.height)
+
+            # assume every video has length>=n_sample_frames 
+            min_frame_rate = max(len(vr)//self.n_sample_frames, sample_frame_rates[0])
+            sample_frame_rate = min(min_frame_rate, sample_frame_rate)
         except Exception as e:
             print("\n")
             print("illegal file", video_path)
             print("\n")
 
-        if sample_frame_rate == self.sample_frame_rates[0] and random.random() < 0.5:
-            return vr, prompt
+        if sample_frame_rate == sample_frame_rates[0] and random.random() < 0.5:
+            return vr, prompt, sample_frame_rate
 
-        return vr, "{} ...{}x".format(prompt, sample_frame_rate)
+        return vr, "{} ...{}x".format(prompt, sample_frame_rate), sample_frame_rate
 
     def __getitem__(self, index):
-        sample_frame_rate = self.sample_frame_rates[random.randint(0,len(self.sample_frame_rates))-1]
-
         idx = index
+        sample_frame_rate = 2
 
         while True:
-            vr, prompt = self.getvr(idx, sample_frame_rate)
+            vr, prompt, sample_frame_rate = self.getvr(idx, sample_frame_rate)
 
             if vr is None or len(vr) < self.sample_start_idx+1 \
                     or ((len(vr)-self.sample_start_idx)//sample_frame_rate) < self.n_sample_frames+3:
@@ -87,6 +93,7 @@ class MakeLongVideoDataset(Dataset):
         firstidx = random.randint(0,len(framelst)-self.n_sample_frames)
         sample_index = framelst[firstidx:firstidx+self.n_sample_frames]
         ###
+
 
         video = vr.get_batch(sample_index)
         video = rearrange(video, "f h w c -> f c h w")
