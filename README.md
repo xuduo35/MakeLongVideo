@@ -27,6 +27,9 @@ Implementation of long video generation based on diffusion model.
 
 <!-- <br>   -->
 
+## Change Logs
+- [07/23/2023] LAION400M did not help too much, so I collected another 100m video/text pairs except 2M webvid dataset. Part of them are watermark free. After 2~3 months training, result seems not bad. I will release watermark free checkpoint soon. Training on RTX3090 2GPUs for video generation task is really a pain.
+
 ## Setup
 ### Requirements
 
