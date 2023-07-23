@@ -3,6 +3,7 @@ import decord
 decord.bridge.set_bridge('torch')
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from torch.utils.data import Dataset
 from einops import rearrange
@@ -59,7 +60,8 @@ class MakeLongVideoDataset(Dataset):
 
         # load and sample video frames
         try:
-            vr = decord.VideoReader(video_path, width=self.width, height=self.height)
+            #vr = decord.VideoReader(video_path, width=self.width, height=self.height)
+            vr = decord.VideoReader(video_path)
 
             # assume every video has length>=n_sample_frames 
             min_frame_rate = max(len(vr)//self.n_sample_frames, sample_frame_rates[0])
@@ -94,9 +96,17 @@ class MakeLongVideoDataset(Dataset):
         sample_index = framelst[firstidx:firstidx+self.n_sample_frames]
         ###
 
-
         video = vr.get_batch(sample_index)
         video = rearrange(video, "f h w c -> f c h w")
+        f, c, h, w = video.shape
+        neww = (self.height*w)//h
+
+        if neww <= self.width:
+            video = F.interpolate(video, (self.height,self.width), mode='bilinear')
+        else:
+            video = F.interpolate(video, (self.height,neww), mode='bilinear')
+            startpos = random.randint(0,neww-self.width-1)
+            video = video[:,:,:,startpos:startpos+self.width]
 
         example = {
             "pixel_values": (video / 127.5 - 1.0),

@@ -3,7 +3,7 @@ output_dir: "./outputs/makelongvideo"
 
 train_data:
   video_dir: "./data"
-  train_list: "train_hq.txt"
+  train_list: "train_384x256.txt"
   n_sample_frames: 24
   width: 384
   height: 256
@@ -58,5 +58,5 @@ gradient_accumulation_steps: 100
 #use_offset_noise: False
 #offset_noise_strength: 0.1
 use_offset_noise: True
-offset_noise_strength: 0.23
-resume_from_checkpoint: "outputs/makelongvideo/checkpoint-12610"
+offset_noise_strength: 0.25
+resume_from_checkpoint: "outputs/makelongvideo/checkpoint-17200"
