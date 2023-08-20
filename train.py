@@ -185,6 +185,12 @@ def main(
     text_encoder = CLIPTextModel.from_pretrained(pretrained_model_path, subfolder="text_encoder")
     vae = AutoencoderKL.from_pretrained(pretrained_model_path, subfolder="vae")
     unet = UNet3DConditionModel.from_pretrained_2d(pretrained_model_path, subfolder="unet")
+    if resume_from_checkpoint is not None or args.unwrap is not None:
+        ckptpath = resume_from_checkpoint
+        if args.unwrap is not None:
+            ckptpath = args.unwrap
+        ckpt = torch.load(os.path.join(ckptpath, 'pytorch_model.bin'), map_location='cpu')
+        unet.load_state_dict(ckpt)
 
     # Freeze vae and text_encoder
     vae.requires_grad_(False)
@@ -344,7 +350,7 @@ def main(
     first_epoch = 0
 
     # Potentially load in the weights and states from a previous save
-    if resume_from_checkpoint or args.unwrap is not None:
+    if resume_from_checkpoint is not None or args.unwrap is not None:
         if args.unwrap is not None:
             resume_from_checkpoint = args.unwrap
 
@@ -357,7 +363,7 @@ def main(
             dirs = sorted(dirs, key=lambda x: int(x.split("-")[1]))
             path = dirs[-1]
         accelerator.print(f"Resuming from checkpoint {path}")
-        accelerator.load_state(os.path.join(output_dir, path))
+        #accelerator.load_state(os.path.join(output_dir, path))
         global_step = int(path.split("-")[1])
 
         first_epoch = global_step // num_update_steps_per_epoch

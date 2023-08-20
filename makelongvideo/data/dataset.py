@@ -58,10 +58,15 @@ class MakeLongVideoDataset(Dataset):
         sample_frame_rates = self.sample_frame_rates
         sample_frame_rate = sample_frame_rates[random.randint(0,len(sample_frame_rates)-1)]
 
+        scale = 1
+
         # load and sample video frames
         try:
             #vr = decord.VideoReader(video_path, width=self.width, height=self.height)
             vr = decord.VideoReader(video_path)
+
+            fps = vr.get_avg_fps()
+            scale = 1 if fps <= 30 else fps//24
 
             # assume every video has length>=n_sample_frames 
             min_frame_rate = max(len(vr)//self.n_sample_frames, sample_frame_rates[0])
@@ -71,10 +76,11 @@ class MakeLongVideoDataset(Dataset):
             print("illegal file", video_path)
             print("\n")
 
-        if sample_frame_rate == sample_frame_rates[0] and random.random() < 0.5:
-            return vr, prompt, sample_frame_rate
+        if len(sample_frame_rates) == 1 or \
+                sample_frame_rate == sample_frame_rates[0] and random.random() < 0.5:
+            return vr, prompt, int(sample_frame_rate*scale)
 
-        return vr, "{} ...{}x".format(prompt, sample_frame_rate), sample_frame_rate
+        return vr, "{} ...{}x".format(prompt, sample_frame_rate), int(sample_frame_rate*scale)
 
     def __getitem__(self, index):
         idx = index
@@ -105,7 +111,9 @@ class MakeLongVideoDataset(Dataset):
             video = F.interpolate(video, (self.height,self.width), mode='bilinear')
         else:
             video = F.interpolate(video, (self.height,neww), mode='bilinear')
-            startpos = random.randint(0,neww-self.width-1)
+            #startpos = random.randint(0,neww-self.width-1)
+            offlist = [(neww-self.width)//4, (neww-self.width)//2, (neww-self.width)*3//4]
+            startpos = random.choice(offlist)
             video = video[:,:,:,startpos:startpos+self.width]
 
         example = {

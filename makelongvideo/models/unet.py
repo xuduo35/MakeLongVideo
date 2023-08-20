@@ -450,6 +450,9 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
         #print("\n".join(state_dict.keys()))
         #print("\n".join(model.state_dict().keys()))
         for k, v in model.state_dict().items():
+            if k in state_dict.keys():
+                continue
+
             if '_temp.' in k or 'temporal_conv' in k or 'rel_pos_bias' in k:
                 state_dict.update({k: v})
             if 'spatial_conv' in k:

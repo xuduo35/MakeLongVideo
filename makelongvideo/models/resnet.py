@@ -160,7 +160,7 @@ class ResnetBlock3D(nn.Module):
         in_channels,
         out_channels=None,
         conv_shortcut=False,
-        dropout=0.0,
+        dropout=0.3,
         temb_channels=512,
         groups=32,
         groups_out=None,
